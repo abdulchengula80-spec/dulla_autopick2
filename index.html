@@ -1,0 +1,267 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>Match Outcome Generator</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,400;12..96,600;12..96,800&display=swap" rel="stylesheet">
+<style>
+:root{--bg:#eef1e9;--card:#fff;--ink:#14211a;--mute:#5d6b62;--line:#d9dfd2;--acc:#1f7a4d;--accink:#fff;--err:#b3261e;--inp:#f6f8f2;
+--c1:#2c6bed;--c1t:#fff;--c2:#f2a900;--c2t:#2a1d00;--c3:#d6336c;--c3t:#fff;
+box-sizing:border-box;padding-top:env(safe-area-inset-top,0px);padding-bottom:env(safe-area-inset-bottom,0px)}
+@media(prefers-color-scheme:dark){:root:not([data-theme="light"]){--bg:#0c1411;--card:#15211c;--ink:#e8efe9;--mute:#93a399;--line:#25352d;--acc:#4cc38a;--accink:#07140d;--err:#ff8a80;--inp:#0f1a15}}
+:root[data-theme="dark"]{--bg:#0c1411;--card:#15211c;--ink:#e8efe9;--mute:#93a399;--line:#25352d;--acc:#4cc38a;--accink:#07140d;--err:#ff8a80;--inp:#0f1a15}
+html{scroll-padding-top:env(safe-area-inset-top,0px)}
+*,*::before,*::after{box-sizing:inherit}
+body{margin:0;background:var(--bg);color:var(--ink);font-family:"Bricolage Grotesque",system-ui,-apple-system,"Segoe UI",Roboto,sans-serif;line-height:1.5;transition:background .3s,color .3s}
+.wrap{max-width:960px;margin:0 auto;padding:20px 16px 48px}
+header{display:flex;justify-content:space-between;align-items:center;gap:12px;margin-bottom:16px}
+h1{font-size:clamp(1.4rem,4.5vw,2rem);margin:0;font-weight:800;letter-spacing:-.02em}
+.sub{margin:2px 0 0;color:var(--mute);font-size:.95rem}
+.card{background:var(--card);border:1px solid var(--line);border-radius:20px;padding:20px;margin-bottom:16px}
+button,input,select{font:inherit;color:inherit}
+button{cursor:pointer;border:1px solid var(--line);background:var(--card);border-radius:12px;padding:10px 16px;min-height:44px;transition:transform .12s,background .2s}
+button:active{transform:scale(.97)}
+button:disabled{opacity:.4;cursor:not-allowed}
+:focus-visible{outline:3px solid var(--acc);outline-offset:2px}
+.primary{background:var(--acc);color:var(--accink);border-color:var(--acc);font-weight:600}
+.theme{width:44px;padding:0;border-radius:50%;font-size:1.1rem}
+label{display:block;font-weight:600;margin-bottom:6px}
+.form{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end}
+.field{flex:1 1 200px}
+input[type=text],input[type=number],select{width:100%;min-height:48px;padding:10px 14px;border:1.5px solid var(--line);border-radius:12px;background:var(--inp)}
+input.bad{border-color:var(--err)}
+.err{color:var(--err);font-weight:600;margin:10px 0 0;min-height:1.2em}
+.hint{color:var(--mute);font-size:.88rem;margin:6px 0 0}
+.total{display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 14px}
+.total .lbl{color:var(--mute);font-weight:600}
+.total .num{font-size:clamp(2.2rem,10vw,4rem);font-weight:800;letter-spacing:-.03em;line-height:1;font-variant-numeric:tabular-nums;color:var(--acc);word-break:break-all}
+.formula{color:var(--mute);margin:8px 0 0;font-size:.95rem}
+.b{display:inline-block;min-width:3.2em;text-align:center;padding:4px 10px;border-radius:999px;font-weight:700;font-size:.9rem;line-height:1.4}
+.b1{background:var(--c1);color:var(--c1t)}.b2{background:var(--c2);color:var(--c2t)}.b3{background:var(--c3);color:var(--c3t)}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin-top:12px;color:var(--mute);font-size:.9rem;align-items:center}
+.legend span{display:inline-flex;align-items:center;gap:6px}
+.bar{display:flex;gap:10px;flex-wrap:wrap;align-items:flex-end;margin-bottom:12px}
+.bar .field{flex:2 1 220px}
+.count{color:var(--mute);margin:0 0 10px;font-size:.95rem}
+ul.list{list-style:none;margin:0;padding:0;border-top:1px solid var(--line)}
+.row{display:flex;align-items:center;gap:10px;padding:8px 0;border-bottom:1px solid var(--line)}
+.rn{flex:0 0 5.2em;color:var(--mute);font-variant-numeric:tabular-nums;font-size:.9rem}
+.badges{flex:1;display:flex;flex-wrap:wrap;gap:6px}
+.row button{min-height:36px;padding:4px 12px;font-size:.88rem}
+.empty{padding:28px 0;text-align:center;color:var(--mute)}
+.pager{display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;margin-top:14px}
+.pager .mid{display:flex;align-items:center;gap:8px}
+.pager input{width:5.5em;text-align:center}
+.pager select{width:auto}
+.tools{display:flex;gap:10px;flex-wrap:wrap;margin-top:12px}
+details summary{cursor:pointer;font-weight:600}
+details p{color:var(--mute);margin:10px 0 0}
+.toast{position:fixed;left:50%;bottom:calc(20px + env(safe-area-inset-bottom,0px));transform:translate(-50%,30px);background:var(--ink);color:var(--bg);padding:10px 18px;border-radius:999px;opacity:0;pointer-events:none;transition:.25s;z-index:9}
+.toast.show{opacity:1;transform:translate(-50%,0)}
+@media(max-width:520px){.rn{flex-basis:100%}.row{flex-wrap:wrap}.card{padding:16px}}
+@media(prefers-reduced-motion:reduce){*{transition:none!important}}
+</style>
+</head>
+<body>
+<div class="wrap">
+<header>
+  <div><h1>Match Outcome Generator</h1><p class="sub">Every possible result for a set of football matches.</p></div>
+  <button class="theme" id="theme" aria-label="Switch light or dark theme">◐</button>
+</header>
+
+<section class="card">
+  <div class="form">
+    <div class="field">
+      <label for="n">Number of Matches</label>
+      <input id="n" type="text" inputmode="numeric" autocomplete="off" value="3" aria-describedby="err">
+    </div>
+    <button class="primary" id="gen">Generate Outcomes</button>
+  </div>
+  <p class="hint">Enter a whole number from 1 to 15. Each extra match triples the list, so 15 matches already means over 14 million rows.</p>
+  <p class="err" id="err" role="alert"></p>
+</section>
+
+<section class="card">
+  <div class="total"><span class="lbl">Total Possible Outcomes:</span><span class="num" id="total">27</span></div>
+  <p class="formula" id="formula"></p>
+  <div class="legend">
+    <span><i class="b b1">1st</i> Home team wins</span>
+    <span><i class="b b2">2nd</i> Draw</span>
+    <span><i class="b b3">3rd</i> Away team wins</span>
+  </div>
+</section>
+
+<section class="card">
+  <div class="bar">
+    <div class="field">
+      <label for="q">Search combination</label>
+      <input id="q" type="text" placeholder="e.g. 1st-2nd-3rd" autocomplete="off" aria-label="Search combination">
+    </div>
+    <div>
+      <label for="ps">Items per page</label>
+      <select id="ps"><option>25</option><option selected>50</option><option>100</option><option>250</option></select>
+    </div>
+  </div>
+  <p class="hint" style="margin:-4px 0 12px">Type a full combination to jump to it, or part of one (like 2nd-2nd) to find every row containing that run.</p>
+  <p class="count" id="count" aria-live="polite"></p>
+  <ul class="list" id="list"></ul>
+  <div class="pager">
+    <button id="prev">Previous</button>
+    <div class="mid">Page <input id="pg" type="number" min="1" aria-label="Page number"> of <span id="pages">1</span></div>
+    <button id="next">Next</button>
+  </div>
+  <div class="tools"><button class="primary" id="copyAll">Copy Visible Outcomes</button></div>
+</section>
+
+<section class="card">
+  <details>
+    <summary>What do 1st, 2nd and 3rd mean?</summary>
+    <p>Each match has three possible results: 1st is a home win, 2nd is a draw, and 3rd is an away win. A row lists one result per match, in match order, so "1st - 3rd - 2nd" means home win in match 1, away win in match 2 and a draw in match 3.</p>
+  </details>
+</section>
+</div>
+<div class="toast" id="toast"></div>
+
+<script>
+(function(){
+"use strict";
+var MAX=15, LABELS=["1st","2nd","3rd"];
+var $=function(id){return document.getElementById(id)};
+var N=3, total=27, matches=null, capped=false, token=0, page=1, pattern=null;
+var CAP=200000;
+
+function fmt(x){return x.toLocaleString("en-US")}
+function digits(idx){ // base-3 digits, most significant first
+  var d=new Array(N);
+  for(var i=N-1;i>=0;i--){d[i]=idx%3;idx=Math.floor(idx/3)}
+  return d;
+}
+function text(idx){return digits(idx).map(function(v){return LABELS[v]}).join(" - ")}
+function viewSize(){return matches?matches.length:total}
+function idxAt(pos){return matches?matches[pos]:pos}
+function pageSize(){return parseInt($("ps").value,10)}
+function pageCount(){return Math.max(1,Math.ceil(viewSize()/pageSize()))}
+
+function setError(msg){$("err").textContent=msg;$("n").classList.toggle("bad",!!msg)}
+function toast(m){var t=$("toast");t.textContent=m;t.classList.add("show");clearTimeout(toast.h);toast.h=setTimeout(function(){t.classList.remove("show")},1600)}
+
+function generate(){
+  var raw=$("n").value.trim();
+  if(!/^\d+$/.test(raw)||parseInt(raw,10)<1){setError("Please enter a valid positive whole number.");return}
+  var v=parseInt(raw,10);
+  if(v>MAX){setError("The maximum is "+MAX+" matches. Every extra match triples the number of combinations, and "+v+" matches would be far too many to handle in a browser.");return}
+  setError("");
+  N=v;total=Math.pow(3,N);page=1;
+  $("total").textContent=fmt(total);
+  $("formula").textContent="3^"+N+" = "+fmt(total)+" combinations, each appearing exactly once.";
+  $("pg").max=0;
+  runSearch();
+}
+
+function parseQuery(s){
+  s=s.trim();
+  if(!s)return {empty:true};
+  var toks=s.match(/[123](?:st|nd|rd)?/gi);
+  if(!toks)return {bad:true};
+  var rest=s.replace(/[123](?:st|nd|rd)?/gi,"");
+  if(!/^[\s\-–—,>|]*$/.test(rest))return {bad:true};
+  return {p:toks.map(function(t){return parseInt(t[0],10)-1})};
+}
+
+function runSearch(){
+  token++;var my=token;
+  var r=parseQuery($("q").value);
+  matches=null;capped=false;pattern=null;page=1;
+  if(r.empty){render();return}
+  if(r.bad||r.p.length>N){matches=[];render();return}
+  pattern=r.p;
+  var k=r.p.length;
+  if(k===N){ // exact combination: direct base-3 lookup
+    var idx=0;for(var i=0;i<N;i++)idx=idx*3+r.p[i];
+    matches=[idx];render();return;
+  }
+  // partial: scan every combination in short chunks so the page never freezes
+  matches=[];
+  var d=new Array(N).fill(0),done=0,p=r.p,out=[];
+  $("count").textContent="Searching… 0%";
+  function step(){
+    if(my!==token)return;
+    var t0=performance.now();
+    while(done<total){
+      for(var o=0;o<=N-k;o++){
+        var j=0;while(j<k&&d[o+j]===p[j])j++;
+        if(j===k){out.push(done);break}
+      }
+      done++;
+      if(out.length>=CAP){capped=true;break}
+      for(var i=N-1;i>=0;i--){if(++d[i]<3)break;d[i]=0}
+      if((done&1023)===0&&performance.now()-t0>12)break;
+    }
+    if(my!==token)return;
+    if(done<total&&!capped){
+      $("count").textContent="Searching… "+Math.floor(done/total*100)+"%";
+      setTimeout(step,0);
+    }else{matches=out;render()}
+  }
+  step();
+}
+
+function render(){
+  var size=viewSize(),ps=pageSize(),pages=pageCount();
+  if(page>pages)page=pages;if(page<1)page=1;
+  var start=(page-1)*ps,end=Math.min(start+ps,size);
+  var html="";
+  for(var pos=start;pos<end;pos++){
+    var idx=idxAt(pos),d=digits(idx),b="";
+    for(var i=0;i<N;i++)b+='<span class="b b'+(d[i]+1)+'">'+LABELS[d[i]]+'</span>';
+    html+='<li class="row"><span class="rn">#'+fmt(idx+1)+'</span><span class="badges">'+b+'</span><button data-i="'+idx+'">Copy</button></li>';
+  }
+  var list=$("list");
+  list.innerHTML=html||'<li class="empty">No combinations match. Try a pattern like 1st-2nd.</li>';
+  var what=matches?"matching outcomes":"outcomes";
+  $("count").textContent=size?"Showing "+fmt(start+1)+"–"+fmt(end)+" of "+fmt(size)+" "+what+(capped?" (search stopped at the first "+fmt(CAP)+" matches)":""):"Showing 0 of 0 outcomes";
+  $("pages").textContent=fmt(pages);
+  $("pg").max=pages;$("pg").value=page;
+  $("prev").disabled=page<=1;$("next").disabled=page>=pages;
+  $("copyAll").disabled=!size;
+}
+
+function copy(str,msg){
+  function fallback(){
+    var ta=document.createElement("textarea");ta.value=str;ta.style.position="fixed";ta.style.opacity="0";
+    document.body.appendChild(ta);ta.select();
+    try{document.execCommand("copy");toast(msg)}catch(e){toast("Copy not available in this browser")}
+    document.body.removeChild(ta);
+  }
+  if(navigator.clipboard&&window.isSecureContext){navigator.clipboard.writeText(str).then(function(){toast(msg)},fallback)}
+  else fallback();
+}
+
+$("gen").onclick=generate;
+$("n").addEventListener("keydown",function(e){if(e.key==="Enter")generate()});
+var qt;$("q").addEventListener("input",function(){clearTimeout(qt);qt=setTimeout(runSearch,200)});
+$("ps").onchange=function(){page=1;render()};
+$("prev").onclick=function(){page--;render()};
+$("next").onclick=function(){page++;render()};
+$("pg").addEventListener("change",function(){var v=parseInt($("pg").value,10);page=isNaN(v)?page:v;render()});
+$("list").addEventListener("click",function(e){
+  var b=e.target.closest("button[data-i]");if(!b)return;
+  copy(text(parseInt(b.dataset.i,10)),"Copied "+text(parseInt(b.dataset.i,10)));
+});
+$("copyAll").onclick=function(){
+  var size=viewSize(),ps=pageSize(),s=(page-1)*ps,e=Math.min(s+ps,size),lines=[];
+  for(var pos=s;pos<e;pos++){var i=idxAt(pos);lines.push("#"+(i+1)+" "+text(i))}
+  copy(lines.join("\n"),"Copied "+lines.length+" outcomes");
+};
+$("theme").onclick=function(){
+  var r=document.documentElement,dark=r.dataset.theme?r.dataset.theme==="dark":matchMedia("(prefers-color-scheme: dark)").matches;
+  r.dataset.theme=dark?"light":"dark";
+};
+generate();
+})();
+</script>
+</body>
+</html>
+
